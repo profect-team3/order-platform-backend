@@ -54,7 +54,7 @@ public class AdminUserController {
 		summary = "선택한 유저 주문내역 조회",
 		description = "선택한 유저의 주문 정보를 확인 합니다."
 	)
-	public ApiResponse<PagedResponse<GetOrderListResponse>> getUsersById(
+	public ApiResponse<PagedResponse<GetOrderListResponse>> getUsersOrderListById(
 		@PageableDefault(size = 20, sort = "createdAt", direction = DESC) Pageable pageable,
 		@PathVariable("userId") Long userId
 	) {
