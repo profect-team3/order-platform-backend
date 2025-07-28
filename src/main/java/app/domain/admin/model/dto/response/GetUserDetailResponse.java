@@ -13,7 +13,7 @@ public record GetUserDetailResponse(
 	String nickName,
 	String phoneNumber,
 	LocalDateTime createdAt,
-	LocalDateTime updateAt,
+	LocalDateTime updatedAt,
 	List<GetUserAddressListResponse> address
 ) {
 	public static GetUserDetailResponse from(
