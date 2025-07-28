@@ -16,7 +16,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -70,10 +69,8 @@ public class Orders extends BaseEntity {
 	@Column(nullable = false)
 	private boolean isRefundable = true;
 
-	@Lob
 	@Column(nullable = false)
 	private String orderHistory; // JSON 문자열
 
-	@Lob
 	private String requestMessage;
 }
