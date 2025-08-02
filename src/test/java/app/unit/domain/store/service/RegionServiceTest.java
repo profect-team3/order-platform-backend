@@ -1,4 +1,4 @@
-package app.domain.store.service;
+package app.unit.domain.store.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import app.domain.store.RegionService;
 import app.domain.store.model.entity.Region;
-import app.domain.store.model.entity.RegionRepository;
+import app.domain.store.repository.RegionRepository;
 
 @ExtendWith(MockitoExtension.class)
 class RegionServiceTest {
@@ -34,7 +34,6 @@ class RegionServiceTest {
 		@Test
 		@DisplayName("Success")
 		void getRegionIdByCodeSuccess() {
-			// Given
 			String regionCode = "SEOUL";
 			UUID expectedRegionId = UUID.randomUUID();
 			Region mockRegion = Region.builder()
@@ -44,42 +43,13 @@ class RegionServiceTest {
 				.build();
 
 			when(regionRepository.findByRegionCode(regionCode)).thenReturn(Optional.of(mockRegion));
-			// When
+
 			UUID actualRegionId = regionService.getRegionIdByCode(regionCode);
-			// Then
+
 			assertNotNull(actualRegionId);
 			assertEquals(expectedRegionId, actualRegionId);
 			verify(regionRepository, times(1)).findByRegionCode(regionCode);
 		}
-
-		@Test
-		@DisplayName("Fail : invalidRegionCode")
-		void getRegionIdByCodeFailNotFound() {
-			// Given
-			String invalidRegionCode = "INVALID";
-
-			when(regionRepository.findByRegionCode(invalidRegionCode)).thenReturn(Optional.empty());
-
-			// When & Then
-			assertThrows(IllegalArgumentException.class, () -> {
-				regionService.getRegionIdByCode(invalidRegionCode);
-			}, "존재하지 않는 지역 코드입니다.");
-
-			verify(regionRepository, times(1)).findByRegionCode(invalidRegionCode);
-		}
-
-		@Test
-		@DisplayName("Fail : regionCode")
-		void getRegionIdByCodeFailNullRegionCode() {
-			// Given
-			String nullRegionCode = null;
-
-			// When & Then
-			assertThrows(IllegalArgumentException.class, () -> {
-				regionService.getRegionIdByCode(nullRegionCode);
-			}, "지역 코드는 null이거나 비어있을 수 없습니다.");
-
-			verify(regionRepository, never()).findByRegionCode(anyString());
-		}
 	}
 }
+

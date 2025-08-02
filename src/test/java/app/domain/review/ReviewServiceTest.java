@@ -25,7 +25,7 @@ import app.domain.review.model.dto.request.GetReviewRequest;
 import app.domain.review.model.dto.response.GetReviewResponse;
 import app.domain.review.model.entity.Review;
 import app.domain.store.model.entity.Store;
-import app.domain.store.model.entity.StoreRepository;
+import app.domain.store.repository.StoreRepository;
 import app.domain.user.model.UserRepository;
 import app.domain.user.model.entity.User;
 import app.global.apiPayload.code.status.ErrorStatus;
