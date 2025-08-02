@@ -12,12 +12,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import app.global.apiPayload.ApiResponse;
-import app.global.apiPayload.code.ErrorReasonDTO;
+import app.global.apiPayload.code.BaseCode;
 import app.global.apiPayload.code.status.ErrorStatus;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,28 +52,35 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 	}
 
 	@ExceptionHandler(GeneralException.class)
-	public ResponseEntity<Object> onThrowException(GeneralException ex, HttpServletRequest request) {
-		ErrorReasonDTO errorReason = ex.getErrorReasonHttpStatus();
-		return handleExceptionInternal(ex, errorReason, null, request);
+	public ResponseEntity<Object> onThrowException(GeneralException ex, WebRequest request) {
+		BaseCode code = ex.getCode();
+		ApiResponse<Object> body = ApiResponse.onFailure(code, null);
+		return super.handleExceptionInternal(
+			ex,
+			body,
+			new HttpHeaders(),
+			code.getReasonHttpStatus().getHttpStatus(),
+			request
+		);
 	}
 
-	private ResponseEntity<Object> handleExceptionInternal(Exception e, ErrorReasonDTO reason,
-		HttpHeaders headers, HttpServletRequest request) {
-		ApiResponse<Object> body = ApiResponse.onFailure(reason.getCode(), reason.getMessage(), null);
-		WebRequest webRequest = new ServletWebRequest(request);
-		return super.handleExceptionInternal(e, body, headers, reason.getHttpStatus(), webRequest);
-	}
+	// private ResponseEntity<Object> handleExceptionInternal(Exception e, ReasonDTO reason,
+	// 	HttpHeaders headers, HttpServletRequest request) {
+	// 	ApiResponse<Object> body = ApiResponse.onFailure(reason.getCode(), reason.getMessage(), null);
+	// 	WebRequest webRequest = new ServletWebRequest(request);
+	// 	return super.handleExceptionInternal(e, body, headers, reason.getHttpStatus(), webRequest);
+	// }
 
 	private ResponseEntity<Object> handleExceptionInternalFalse(Exception e, ErrorStatus status,
 		HttpHeaders headers, HttpStatus httpStatus,
 		WebRequest request, String errorPoint) {
-		ApiResponse<Object> body = ApiResponse.onFailure(status.getCode(), status.getMessage(), errorPoint);
+		ApiResponse<Object> body = ApiResponse.onFailure(status, errorPoint);
 		return super.handleExceptionInternal(e, body, headers, httpStatus, request);
 	}
 
 	private ResponseEntity<Object> handleExceptionInternalArgs(Exception e, HttpHeaders headers, ErrorStatus status,
 		WebRequest request, Map<String, String> errorArgs) {
-		ApiResponse<Object> body = ApiResponse.onFailure(status.getCode(), status.getMessage(), errorArgs);
+		ApiResponse<Object> body = ApiResponse.onFailure(status, errorArgs);
 		return super.handleExceptionInternal(e, body, headers, status.getHttpStatus(), request);
 	}
 }

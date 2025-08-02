@@ -33,11 +33,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 
 		response.setStatus(errorStatus.getHttpStatus().value());
 
-		ApiResponse<Object> errorResponse = ApiResponse.onFailure(
-			errorStatus.getCode(),
-			errorStatus.getMessage(),
-			null
-		);
+		ApiResponse<Object> errorResponse = ApiResponse.onFailure(errorStatus, null);
 
 		objectMapper.writeValue(response.getWriter(), errorResponse);
 	}

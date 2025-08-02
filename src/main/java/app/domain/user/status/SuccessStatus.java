@@ -1,4 +1,4 @@
-package app.global.apiPayload.code.status;
+package app.domain.user.status;
 
 import org.springframework.http.HttpStatus;
 
@@ -7,15 +7,15 @@ import app.global.apiPayload.code.ReasonDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum SuccessStatus implements BaseCode {
-	// 일반적인 응답
-	_OK(HttpStatus.OK, "COMMON200", "success"),
 
-	// Email 관련 응답
-	EMAIL_OK(HttpStatus.OK, "EMAILSEND200", "인증번호 전송되었습니다"),
-	VERIFY_OK(HttpStatus.OK, "VERIFY200", "이메일 인증이 완료되었습니다");
+	// User
+	USER_CREATED(HttpStatus.CREATED, "USER201", "사용자 생성이 성공했습니다."),
+	LOGIN_SUCCESS(HttpStatus.OK, "USER202", "로그인에 성공했습니다."),
+	LOGOUT_SUCCESS(HttpStatus.OK, "USER203", "로그아웃에 성공했습니다."),
+	WITHDRAW_SUCCESS(HttpStatus.OK, "USER204", "회원 탈퇴가 성공적으로 처리되었습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
@@ -24,6 +24,7 @@ public enum SuccessStatus implements BaseCode {
 	@Override
 	public ReasonDTO getReason() {
 		return ReasonDTO.builder()
+			.isSuccess(true)
 			.message(message)
 			.code(code)
 			.build();
@@ -32,6 +33,7 @@ public enum SuccessStatus implements BaseCode {
 	@Override
 	public ReasonDTO getReasonHttpStatus() {
 		return ReasonDTO.builder()
+			.isSuccess(true)
 			.message(message)
 			.code(code)
 			.httpStatus(httpStatus)

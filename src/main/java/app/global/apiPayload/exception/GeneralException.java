@@ -1,17 +1,21 @@
 package app.global.apiPayload.exception;
 
-
-import app.global.apiPayload.code.ErrorReasonDTO;
-import app.global.apiPayload.code.status.ErrorStatus;
+import app.global.apiPayload.code.BaseCode;
+import app.global.apiPayload.code.ReasonDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
 @Getter
 @AllArgsConstructor
 public class GeneralException extends RuntimeException {
 
-    private final ErrorStatus errorStatus;
+	private final BaseCode code;
 
-    public ErrorReasonDTO getErrorReasonHttpStatus(){
-        return this.errorStatus.getReasonHttpStatus();
-    }
+	public ReasonDTO getErrorReason() {
+		return this.code.getReason();
+	}
+
+	public ReasonDTO getErrorReasonHttpStatus() {
+		return this.code.getReasonHttpStatus();
+	}
 }
