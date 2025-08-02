@@ -35,7 +35,7 @@ public class ReviewService {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
-		Orders order = ordersRepository.findById(request.orderId())
+		Orders order = ordersRepository.findById(request.ordersId())
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 
 		if (!order.getUser().equals(user)) {

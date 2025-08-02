@@ -28,7 +28,7 @@ public class ReviewController {
 
 	@PostMapping
 	public ApiResponse<String> createReview(
-		@AuthenticationPrincipal User principal,
+		@AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
 		@Valid @RequestBody CreateReviewRequest request
 	) {
 		Long userId = Long.parseLong(principal.getUsername());

@@ -2,12 +2,12 @@ package app.domain.order.model.entity;
 
 import java.util.UUID;
 
-import app.domain.user.model.entity.User;
 import app.domain.order.model.entity.enums.OrderChannel;
 import app.domain.order.model.entity.enums.OrderStatus;
 import app.domain.order.model.entity.enums.PaymentMethod;
 import app.domain.order.model.entity.enums.ReceiptMethod;
 import app.domain.store.model.entity.Store;
+import app.domain.user.model.entity.User;
 import app.global.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -70,8 +70,7 @@ public class Orders extends BaseEntity {
 	@Column(nullable = false)
 	private boolean isRefundable;
 
-	@Lob
-	@Column(nullable = false)
+	@Column(nullable = false, columnDefinition = "TEXT")
 	private String orderHistory; // JSON 문자열
 
 	@Lob
