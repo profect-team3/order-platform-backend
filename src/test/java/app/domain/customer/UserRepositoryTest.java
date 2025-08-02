@@ -1,4 +1,4 @@
-package app.domain.customer;
+package app.domain.user.model;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -11,150 +11,167 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataIntegrityViolationException;
 
-import app.domain.user.model.UserRepository;
 import app.domain.user.model.entity.User;
 import app.domain.user.model.entity.enums.UserRole;
-import app.global.config.JpaAuditingConfig;
 
-@DataJpaTest // 인메모리 DB 사용
-@Import(JpaAuditingConfig.class)
+@DataJpaTest
 @DisplayName("UserRepository 테스트")
 class UserRepositoryTest {
 
 	@Autowired
-	private TestEntityManager entityManager;
-
-	@Autowired
 	private UserRepository userRepository;
 
-	private User user;
+	@Autowired
+	private TestEntityManager entityManager;
+
+	private User existingUser;
 
 	@BeforeEach
 	void setUp() {
-		user = User.builder()
-			.username("testuser")
-			.password("password123!")
-			.email("test@example.com")
-			.nickname("testnick")
-			.realName("김테스트")
-			.phoneNumber("01012345678")
+
+		entityManager.clear();
+
+		existingUser = User.builder()
+			.username("existinguser")
+			.password("password123")
+			.email("existing@example.com")
+			.nickname("existingnick")
+			.realName("기존사용자")
+			.phoneNumber("010-1111-1111")
 			.userRole(UserRole.CUSTOMER)
 			.build();
-		entityManager.persistAndFlush(user);
+
+		userRepository.save(existingUser);
+		entityManager.flush(); // DB에 즉시 반영
 	}
 
 	@Nested
-	@DisplayName("findByUsername 메서드 테스트")
-	class FindByUsernameTest {
+	@DisplayName("findFirstByUniqueFields 메서드 테스트")
+	class FindFirstByUniqueFields {
+
 		@Test
-		@DisplayName("성공: 존재하는 username으로 조회 시, User 객체를 담은 Optional을 반환한다.")
-		void findByUsername_ExistingUser_ReturnsOptionalOfUser() {
+		@DisplayName("성공 - 중복된 username으로 사용자 조회")
+		void findFirstByUniqueFields_WithDuplicateUsername_ShouldReturnUser() {
+			// given
+			String duplicateUsername = "existinguser";
+			String newEmail = "new@example.com";
+			String newNickname = "newnick";
+			String newPhoneNumber = "010-2222-2222";
+
 			// when
-			Optional<User> foundUser = userRepository.findByUsername("testuser");
+			Optional<User> foundUser = userRepository.findFirstByUniqueFields(
+				duplicateUsername, newEmail, newNickname, newPhoneNumber
+			);
 
 			// then
 			assertThat(foundUser).isPresent();
-			assertThat(foundUser.get().getUsername()).isEqualTo(user.getUsername());
+			assertThat(foundUser.get().getUsername()).isEqualTo(existingUser.getUsername());
 		}
 
 		@Test
-		@DisplayName("실패: 존재하지 않는 username으로 조회 시, 빈 Optional을 반환한다.")
-		void findByUsername_NonExistingUser_ReturnsEmptyOptional() {
+		@DisplayName("성공 - 중복된 email로 사용자 조회")
+		void findFirstByUniqueFields_WithDuplicateEmail_ShouldReturnUser() {
+			// given
+			String newUsername = "newuser";
+			String duplicateEmail = "existing@example.com";
+			String newNickname = "newnick";
+			String newPhoneNumber = "010-2222-2222";
+
 			// when
-			Optional<User> foundUser = userRepository.findByUsername("nonexistentuser");
+			Optional<User> foundUser = userRepository.findFirstByUniqueFields(
+				newUsername, duplicateEmail, newNickname, newPhoneNumber
+			);
+
+			// then
+			assertThat(foundUser).isPresent();
+			assertThat(foundUser.get().getEmail()).isEqualTo(existingUser.getEmail());
+		}
+
+		@Test
+		@DisplayName("성공 - 중복된 nickname으로 사용자 조회")
+		void findFirstByUniqueFields_WithDuplicateNickname_ShouldReturnUser() {
+			// given
+			String newUsername = "newuser";
+			String newEmail = "new@example.com";
+			String duplicateNickname = "existingnick";
+			String newPhoneNumber = "010-2222-2222";
+
+			// when
+			Optional<User> foundUser = userRepository.findFirstByUniqueFields(
+				newUsername, newEmail, duplicateNickname, newPhoneNumber
+			);
+
+			// then
+			assertThat(foundUser).isPresent();
+			assertThat(foundUser.get().getNickname()).isEqualTo(existingUser.getNickname());
+		}
+
+		@Test
+		@DisplayName("성공 - 중복된 phoneNumber로 사용자 조회")
+		void findFirstByUniqueFields_WithDuplicatePhoneNumber_ShouldReturnUser() {
+			// given
+			String newUsername = "newuser";
+			String newEmail = "new@example.com";
+			String newNickname = "newnick";
+			String duplicatePhoneNumber = "010-1111-1111";
+
+			// when
+			Optional<User> foundUser = userRepository.findFirstByUniqueFields(
+				newUsername, newEmail, newNickname, duplicatePhoneNumber
+			);
+
+			// then
+			assertThat(foundUser).isPresent();
+			assertThat(foundUser.get().getPhoneNumber()).isEqualTo(existingUser.getPhoneNumber());
+		}
+
+		@Test
+		@DisplayName("성공 - 중복된 필드가 없을 경우 빈 Optional 반환")
+		void findFirstByUniqueFields_WithNoDuplicates_ShouldReturnEmpty() {
+			// given
+			String newUsername = "newuser";
+			String newEmail = "new@example.com";
+			String newNickname = "newnick";
+			String newPhoneNumber = "010-2222-2222";
+
+			// when
+			Optional<User> foundUser = userRepository.findFirstByUniqueFields(
+				newUsername, newEmail, newNickname, newPhoneNumber
+			);
 
 			// then
 			assertThat(foundUser).isNotPresent();
 		}
-	}
-
-	@Nested
-	@DisplayName("existsBy... 메서드 테스트")
-	class ExistsByMethodsTest {
-		@Test
-		@DisplayName("성공: 존재하는 username에 대해 true를 반환한다.")
-		void existsByUsername_Existing_ReturnsTrue() {
-			assertThat(userRepository.existsByUsername("testuser")).isTrue();
-		}
 
 		@Test
-		@DisplayName("실패: 존재하지 않는 username에 대해 false를 반환한다.")
-		void existsByUsername_NonExisting_ReturnsFalse() {
-			assertThat(userRepository.existsByUsername("nonexistentuser")).isFalse();
-		}
-
-		@Test
-		@DisplayName("성공: 존재하는 email에 대해 true를 반환한다.")
-		void existsByEmail_Existing_ReturnsTrue() {
-			assertThat(userRepository.existsByEmail("test@example.com")).isTrue();
-		}
-
-		@Test
-		@DisplayName("실패: 존재하지 않는 email에 대해 false를 반환한다.")
-		void existsByEmail_NonExisting_ReturnsFalse() {
-			assertThat(userRepository.existsByEmail("nonexistent@example.com")).isFalse();
-		}
-
-		@Test
-		@DisplayName("성공: 존재하는 nickname에 대해 true를 반환한다.")
-		void existsByNickname_Existing_ReturnsTrue() {
-			assertThat(userRepository.existsByNickname("testnick")).isTrue();
-		}
-
-		@Test
-		@DisplayName("실패: 존재하지 않는 nickname에 대해 false를 반환한다.")
-		void existsByNickname_NonExisting_ReturnsFalse() {
-			assertThat(userRepository.existsByNickname("nonexistentnick")).isFalse();
-		}
-
-		@Test
-		@DisplayName("성공: 존재하는 phoneNumber에 대해 true를 반환한다.")
-		void existsByPhoneNumber_Existing_ReturnsTrue() {
-			assertThat(userRepository.existsByPhoneNumber("01012345678")).isTrue();
-		}
-
-		@Test
-		@DisplayName("실패: 존재하지 않는 phoneNumber에 대해 false를 반환한다.")
-		void existsByPhoneNumber_NonExisting_ReturnsFalse() {
-			assertThat(userRepository.existsByPhoneNumber("01000000000")).isFalse();
-		}
-	}
-
-	@Nested
-	@DisplayName("Unique 제약조건 테스트")
-	class UniqueConstraintTest {
-
-		@Test
-		@DisplayName("예외: 동일한 username으로 저장 시, DataIntegrityViolationException이 발생한다.")
-		void save_DuplicateUsername_ThrowsException() {
+		@DisplayName("성공 - 여러 필드가 중복될 경우 사용자 조회 (OR 조건 테스트)")
+		void findFirstByUniqueFields_WithMultipleDuplicates_ShouldReturnUser() {
 			// given
-			User duplicateUser = User.builder()
-				.username("testuser") // 기존 user와 동일한 username
-				.password("newpass").email("new@example.com").nickname("newnick")
-				.realName("김새로").phoneNumber("01099998888").userRole(UserRole.CUSTOMER)
+			User anotherUser = User.builder()
+				.username("anotheruser")
+				.password("password456")
+				.email("another@example.com")
+				.nickname("anothernick")
+				.realName("다른사용자")
+				.phoneNumber("010-3333-3333")
+				.userRole(UserRole.CUSTOMER)
 				.build();
+			userRepository.save(anotherUser);
+			entityManager.flush();
 
-			// when & then
-			assertThatThrownBy(() -> userRepository.saveAndFlush(duplicateUser))
-				.isInstanceOf(DataIntegrityViolationException.class);
-		}
+			String duplicateUsername = "existinguser";
+			String duplicateEmail = "another@example.com";
+			String newNickname = "newnick";
+			String newPhoneNumber = "010-2222-2222";
 
-		@Test
-		@DisplayName("예외: 동일한 email로 저장 시, DataIntegrityViolationException이 발생한다.")
-		void save_DuplicateEmail_ThrowsException() {
-			// given
-			User duplicateUser = User.builder()
-				.username("newuser")
-				.password("newpass").email("test@example.com") // 기존 user와 동일한 email
-				.nickname("newnick").realName("김새로").phoneNumber("01099998888")
-				.userRole(UserRole.CUSTOMER).build();
+			// when
+			Optional<User> foundUser = userRepository.findFirstByUniqueFields(
+				duplicateUsername, duplicateEmail, newNickname, newPhoneNumber
+			);
 
-			// when & then
-			assertThatThrownBy(() -> userRepository.saveAndFlush(duplicateUser))
-				.isInstanceOf(DataIntegrityViolationException.class);
+			// then
+			assertThat(foundUser).isPresent();
 		}
 	}
 }

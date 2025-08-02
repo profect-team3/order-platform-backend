@@ -1,4 +1,4 @@
-package app.global.apiPayload.code.status;
+package app.domain.review.status;
 
 import org.springframework.http.HttpStatus;
 
@@ -7,15 +7,14 @@ import app.global.apiPayload.code.ReasonDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Getter
-public enum SuccessStatus implements BaseCode {
-	// 일반적인 응답
-	_OK(HttpStatus.OK, "COMMON200", "success"),
+@AllArgsConstructor
+public enum ReviewErrorStatus implements BaseCode {
 
-	// Email 관련 응답
-	EMAIL_OK(HttpStatus.OK, "EMAILSEND200", "인증번호 전송되었습니다"),
-	VERIFY_OK(HttpStatus.OK, "VERIFY200", "이메일 인증이 완료되었습니다");
+	ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW001", "해당 주문이 존재하지 않습니다."),
+	NO_REVIEWS_FOUND_FOR_USER(HttpStatus.NOT_FOUND, "REVIEW002", "해당 사용자가 작성한 리뷰가 없습니다."),
+	REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "REVIEW003", "이미 해당 주문에 대한 리뷰가 존재합니다."),
+	REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW004", "리뷰가 존재하지 않습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
@@ -32,6 +31,7 @@ public enum SuccessStatus implements BaseCode {
 	@Override
 	public ReasonDTO getReasonHttpStatus() {
 		return ReasonDTO.builder()
+			.isSuccess(false)
 			.message(message)
 			.code(code)
 			.httpStatus(httpStatus)

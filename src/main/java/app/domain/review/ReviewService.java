@@ -1,3 +1,4 @@
+// app.domain.review.ReviewService.java
 package app.domain.review;
 
 import java.util.List;
@@ -10,9 +11,9 @@ import app.domain.order.model.OrdersRepository;
 import app.domain.order.model.entity.Orders;
 import app.domain.review.model.ReviewRepository;
 import app.domain.review.model.dto.request.CreateReviewRequest;
-import app.domain.review.model.dto.request.GetReviewRequest;
 import app.domain.review.model.dto.response.GetReviewResponse;
 import app.domain.review.model.entity.Review;
+import app.domain.review.status.ReviewErrorStatus;
 import app.domain.store.model.entity.StoreRepository;
 import app.domain.user.model.UserRepository;
 import app.domain.user.model.entity.User;
@@ -35,15 +36,15 @@ public class ReviewService {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
-		Orders order = ordersRepository.findById(request.orderId())
-			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
+		Orders order = ordersRepository.findById(request.ordersId())
+			.orElseThrow(() -> new GeneralException(ReviewErrorStatus.ORDER_NOT_FOUND));
 
 		if (!order.getUser().equals(user)) {
 			throw new GeneralException(ErrorStatus._FORBIDDEN);
 		}
 
 		if (reviewRepository.existsByOrders(order)) {
-			throw new GeneralException(ErrorStatus.REVIEW_ALREADY_EXISTS);
+			throw new GeneralException(ReviewErrorStatus.REVIEW_ALREADY_EXISTS);
 		}
 
 		Review review = Review.builder()
@@ -56,19 +57,20 @@ public class ReviewService {
 
 		Review savedReview = reviewRepository.save(review);
 
-		return savedReview.getReviewId() + " 가 생성되었습니다.";
+		return "리뷰 : " + savedReview.getReviewId() + " 가 생성되었습니다.";
 	}
 
-	public List<GetReviewResponse> getReviews(Long userId, GetReviewRequest request) {
+	public List<GetReviewResponse> getReviews(Long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
 		List<Review> userReviews = reviewRepository.findByUser(user);
 
-		if (userReviews.isEmpty())
-			throw new GeneralException(ErrorStatus.NO_REVIEWS_FOUND_FOR_USER);
+		if (userReviews.isEmpty()) {
+			throw new GeneralException(ReviewErrorStatus.NO_REVIEWS_FOUND_FOR_USER);
+		}
 
-		return userReviews.stream()
+		List<GetReviewResponse> responses = userReviews.stream()
 			.map(review -> new GetReviewResponse(
 				review.getReviewId(),
 				review.getUser().getUsername(),
@@ -78,5 +80,7 @@ public class ReviewService {
 				review.getCreatedAt()
 			))
 			.collect(Collectors.toList());
+
+		return responses;
 	}
 }

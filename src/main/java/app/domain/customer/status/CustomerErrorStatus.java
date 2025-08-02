@@ -1,4 +1,4 @@
-package app.global.apiPayload.code.status;
+package app.domain.customer.status;
 
 import org.springframework.http.HttpStatus;
 
@@ -9,13 +9,9 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum SuccessStatus implements BaseCode {
-	// 일반적인 응답
-	_OK(HttpStatus.OK, "COMMON200", "success"),
+public enum CustomerErrorStatus implements BaseCode {
 
-	// Email 관련 응답
-	EMAIL_OK(HttpStatus.OK, "EMAILSEND200", "인증번호 전송되었습니다"),
-	VERIFY_OK(HttpStatus.OK, "VERIFY200", "이메일 인증이 완료되었습니다");
+	CUSTOMER_ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "CUSTOMER404", "유저에 대한 오더가 존재하지 않습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
@@ -32,6 +28,7 @@ public enum SuccessStatus implements BaseCode {
 	@Override
 	public ReasonDTO getReasonHttpStatus() {
 		return ReasonDTO.builder()
+			.isSuccess(false)
 			.message(message)
 			.code(code)
 			.httpStatus(httpStatus)

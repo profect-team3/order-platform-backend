@@ -1,4 +1,4 @@
-package app.global.apiPayload.code.status;
+package app.domain.ai.status;
 
 import org.springframework.http.HttpStatus;
 
@@ -9,13 +9,9 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum SuccessStatus implements BaseCode {
-	// 일반적인 응답
-	_OK(HttpStatus.OK, "COMMON200", "success"),
+public enum AiSuccessStatus implements BaseCode {
 
-	// Email 관련 응답
-	EMAIL_OK(HttpStatus.OK, "EMAILSEND200", "인증번호 전송되었습니다"),
-	VERIFY_OK(HttpStatus.OK, "VERIFY200", "이메일 인증이 완료되었습니다");
+	AI_RESPONDED(HttpStatus.CREATED, "AI201", "AI 응답 생성이 성공했습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
@@ -24,6 +20,7 @@ public enum SuccessStatus implements BaseCode {
 	@Override
 	public ReasonDTO getReason() {
 		return ReasonDTO.builder()
+			.isSuccess(true)
 			.message(message)
 			.code(code)
 			.build();
@@ -32,6 +29,7 @@ public enum SuccessStatus implements BaseCode {
 	@Override
 	public ReasonDTO getReasonHttpStatus() {
 		return ReasonDTO.builder()
+			.isSuccess(true)
 			.message(message)
 			.code(code)
 			.httpStatus(httpStatus)

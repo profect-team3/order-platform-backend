@@ -30,7 +30,7 @@ import app.domain.ai.model.dto.response.AiResponse;
 import app.domain.ai.model.entity.AiHistory;
 import app.domain.ai.model.entity.enums.AiRequestStatus;
 import app.domain.ai.model.entity.enums.ReqType;
-import app.global.apiPayload.code.status.ErrorStatus;
+import app.domain.ai.status.AiErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
 
 @DisplayName("AiService 테스트")
@@ -67,9 +67,9 @@ class AiServiceImplTest {
 		void setUp() {
 
 			savedHistory = mock(AiHistory.class);
-			lenient().when(savedHistory.getAiRequestId()).thenReturn(UUID.randomUUID()); // lenient() 추가
+			lenient().when(savedHistory.getAiRequestId()).thenReturn(UUID.randomUUID());
 
-			lenient().when(aiHistoryRepository.save(any(AiHistory.class))).thenReturn(savedHistory); // lenient() 추가
+			lenient().when(aiHistoryRepository.save(any(AiHistory.class))).thenReturn(savedHistory);
 
 			lenient().when(chatClient.prompt()).thenReturn(chatClientRequestSpec);
 			lenient().when(chatClientRequestSpec.user(anyString())).thenReturn(chatClientRequestSpec);
@@ -89,25 +89,7 @@ class AiServiceImplTest {
 
 			assertThatThrownBy(() -> aiService.generateDescription(invalidRequest))
 				.isInstanceOf(GeneralException.class)
-				.hasFieldOrPropertyWithValue("errorStatus", ErrorStatus.AI_INVALID_INPUT_VALUE);
-
-			verify(chatClient, never()).prompt();
-			verify(aiHistoryRepository, never()).save(any(AiHistory.class));
-		}
-
-		@Test
-		@DisplayName("필수 입력값 promptText 누락 시 예외 발생 확인")
-		void givenMissingPromptText_whenGenerateDescription_thenThrowsException() {
-			AiRequest invalidRequest = new AiRequest(
-				"맛있는 족발집",
-				"반반 족발",
-				ReqType.MENU_DESCRIPTION,
-				null
-			);
-
-			assertThatThrownBy(() -> aiService.generateDescription(invalidRequest))
-				.isInstanceOf(GeneralException.class)
-				.hasFieldOrPropertyWithValue("errorStatus", ErrorStatus.AI_INVALID_INPUT_VALUE);
+				.hasFieldOrPropertyWithValue("code", AiErrorStatus.AI_INVALID_INPUT_VALUE);
 
 			verify(chatClient, never()).prompt();
 			verify(aiHistoryRepository, never()).save(any(AiHistory.class));
@@ -125,7 +107,7 @@ class AiServiceImplTest {
 
 			assertThatThrownBy(() -> aiService.generateDescription(invalidRequest))
 				.isInstanceOf(GeneralException.class)
-				.hasFieldOrPropertyWithValue("errorStatus", ErrorStatus.AI_INVALID_INPUT_VALUE);
+				.hasFieldOrPropertyWithValue("code", AiErrorStatus.AI_INVALID_INPUT_VALUE);
 
 			verify(chatClient, never()).prompt();
 			verify(aiHistoryRepository, never()).save(any(AiHistory.class));

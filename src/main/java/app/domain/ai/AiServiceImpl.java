@@ -16,7 +16,7 @@ import app.domain.ai.model.dto.response.AiResponse;
 import app.domain.ai.model.entity.AiHistory;
 import app.domain.ai.model.entity.enums.AiRequestStatus;
 import app.domain.ai.model.entity.enums.ReqType;
-import app.global.apiPayload.code.status.ErrorStatus;
+import app.domain.ai.status.AiErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 
@@ -31,13 +31,10 @@ public class AiServiceImpl implements AiService {
 	@Override
 	public AiResponse generateDescription(AiRequest aiRequest) {
 		if (!StringUtils.hasText(aiRequest.storeName())) {
-			throw new GeneralException(ErrorStatus.AI_INVALID_INPUT_VALUE);
-		}
-		if (!StringUtils.hasText(aiRequest.promptText())) {
-			throw new GeneralException(ErrorStatus.AI_INVALID_INPUT_VALUE);
+			throw new GeneralException(AiErrorStatus.AI_INVALID_INPUT_VALUE);
 		}
 		if (aiRequest.reqType() == ReqType.MENU_DESCRIPTION && !StringUtils.hasText(aiRequest.menuName())) {
-			throw new GeneralException(ErrorStatus.AI_INVALID_INPUT_VALUE);
+			throw new GeneralException(AiErrorStatus.AI_INVALID_INPUT_VALUE);
 		}
 
 		AiHistory aiRequestEntity = AiHistory.builder()
@@ -74,7 +71,7 @@ public class AiServiceImpl implements AiService {
 			savedAiRequestEntity.updateGeneratedContent(generatedContent, AiRequestStatus.SUCCESS);
 		} catch (Exception e) {
 			savedAiRequestEntity.updateGeneratedContent("Error: " + e.getMessage(), AiRequestStatus.FAILED);
-			throw new GeneralException(ErrorStatus.AI_GENERATION_FAILED);
+			throw new GeneralException(AiErrorStatus.AI_GENERATION_FAILED);
 		}
 
 		return new AiResponse(savedAiRequestEntity.getAiRequestId().toString(), generatedContent);
