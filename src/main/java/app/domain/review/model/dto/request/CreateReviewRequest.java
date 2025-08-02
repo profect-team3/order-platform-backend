@@ -10,11 +10,8 @@ import lombok.Builder;
 
 @Builder
 public record CreateReviewRequest(
-	@NotNull(message = "사용자 ID는 필수입니다.")
-	Long userId,
-
 	@NotNull(message = "주문 ID는 필수입니다.")
-	UUID orderId,
+	UUID ordersId,
 
 	@NotNull(message = "평점은 필수입니다.")
 	@Min(value = 1, message = "평점은 1 이상이어야 합니다.")

@@ -10,7 +10,6 @@ import app.domain.order.model.OrdersRepository;
 import app.domain.order.model.entity.Orders;
 import app.domain.review.model.ReviewRepository;
 import app.domain.review.model.dto.request.CreateReviewRequest;
-import app.domain.review.model.dto.request.GetReviewRequest;
 import app.domain.review.model.dto.response.GetReviewResponse;
 import app.domain.review.model.entity.Review;
 import app.domain.store.model.entity.StoreRepository;
@@ -35,7 +34,7 @@ public class ReviewService {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
-		Orders order = ordersRepository.findById(request.orderId())
+		Orders order = ordersRepository.findById(request.ordersId())
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 
 		if (!order.getUser().equals(user)) {
@@ -56,10 +55,10 @@ public class ReviewService {
 
 		Review savedReview = reviewRepository.save(review);
 
-		return savedReview.getReviewId() + " 가 생성되었습니다.";
+		return "리뷰 : " + savedReview.getReviewId() + " 가 생성되었습니다.";
 	}
 
-	public List<GetReviewResponse> getReviews(Long userId, GetReviewRequest request) {
+	public List<GetReviewResponse> getReviews(Long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
@@ -68,7 +67,7 @@ public class ReviewService {
 		if (userReviews.isEmpty())
 			throw new GeneralException(ErrorStatus.NO_REVIEWS_FOUND_FOR_USER);
 
-		return userReviews.stream()
+		List<GetReviewResponse> responses = userReviews.stream()
 			.map(review -> new GetReviewResponse(
 				review.getReviewId(),
 				review.getUser().getUsername(),
@@ -78,5 +77,7 @@ public class ReviewService {
 				review.getCreatedAt()
 			))
 			.collect(Collectors.toList());
+
+		return responses;
 	}
 }
