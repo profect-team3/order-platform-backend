@@ -67,9 +67,9 @@ class AiServiceImplTest {
 		void setUp() {
 
 			savedHistory = mock(AiHistory.class);
-			lenient().when(savedHistory.getAiRequestId()).thenReturn(UUID.randomUUID()); // lenient() 추가
+			lenient().when(savedHistory.getAiRequestId()).thenReturn(UUID.randomUUID());
 
-			lenient().when(aiHistoryRepository.save(any(AiHistory.class))).thenReturn(savedHistory); // lenient() 추가
+			lenient().when(aiHistoryRepository.save(any(AiHistory.class))).thenReturn(savedHistory);
 
 			lenient().when(chatClient.prompt()).thenReturn(chatClientRequestSpec);
 			lenient().when(chatClientRequestSpec.user(anyString())).thenReturn(chatClientRequestSpec);

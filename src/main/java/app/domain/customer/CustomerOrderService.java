@@ -23,20 +23,14 @@ public class CustomerOrderService {
 	private final UserRepository userRepository;
 
 	@Transactional(readOnly = true)
-	public List<CustomerOrderResponse> getCustomerOrders(Long userid) {
-		try {
-			User user = userRepository.findByUserId(userid)
-				.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+	public List<CustomerOrderResponse> getCustomerOrders(Long userId) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+		List<Orders> orders = ordersRepository.findByUser(user);
 
-			List<Orders> orders = ordersRepository.findByUser(user);
+		return orders.stream()
+			.map(CustomerOrderResponse::of)
+			.collect(Collectors.toList());
 
-			return orders.stream()
-				.map(CustomerOrderResponse::of)
-				.collect(Collectors.toList());
-		} catch (GeneralException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
-		}
 	}
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +31,7 @@ import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("CustomerOrderService 테스트")
 class CustomerOrderServiceTest {
 
 	@Mock
@@ -75,23 +77,46 @@ class CustomerOrderServiceTest {
 	@Test
 	@DisplayName("고객 주문 내역 조회 성공")
 	void getCustomerOrders_Success() {
-		when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+		when(userRepository.findById(testUser.getUserId())).thenReturn(Optional.of(testUser));
 		when(ordersRepository.findByUser(testUser)).thenReturn(Arrays.asList(testOrder));
 
-		List<CustomerOrderResponse> result = customerOrderService.getCustomerOrders(1L);
+		List<CustomerOrderResponse> result = customerOrderService.getCustomerOrders(testUser.getUserId());
 
 		assertThat(result).hasSize(1);
 		assertThat(result.get(0).storeName()).isEqualTo("Test Store");
 		assertThat(result.get(0).totalPrice()).isEqualTo(15000L);
+
+		verify(userRepository, times(1)).findById(testUser.getUserId());
+		verify(ordersRepository, times(1)).findByUser(testUser);
 	}
 
 	@Test
 	@DisplayName("고객 주문 내역 조회 실패 - 사용자를 찾을 수 없음")
 	void getCustomerOrders_UserNotFound() {
-		when(userRepository.findById(1L)).thenReturn(Optional.empty());
+		Long nonExistentUserId = 999L;
+		when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> customerOrderService.getCustomerOrders(1L))
+		assertThatThrownBy(() -> customerOrderService.getCustomerOrders(nonExistentUserId))
 			.isInstanceOf(GeneralException.class)
-			.hasMessage(ErrorStatus.USER_NOT_FOUND.getMessage());
+			.extracting("errorStatus")
+			.isEqualTo(ErrorStatus.USER_NOT_FOUND);
+
+		verify(userRepository, times(1)).findById(nonExistentUserId);
+		verify(ordersRepository, never()).findByUser(any());
+	}
+
+	@Test
+	@DisplayName("고객 주문 내역 조회 성공 - 주문이 없는 경우")
+	void getCustomerOrders_NoOrdersFound() {
+		when(userRepository.findById(testUser.getUserId())).thenReturn(Optional.of(testUser));
+		when(ordersRepository.findByUser(testUser)).thenReturn(Collections.emptyList());
+
+		List<CustomerOrderResponse> result = customerOrderService.getCustomerOrders(testUser.getUserId());
+
+		assertThat(result).isNotNull();
+		assertThat(result).isEmpty();
+
+		verify(userRepository, times(1)).findById(testUser.getUserId());
+		verify(ordersRepository, times(1)).findByUser(testUser);
 	}
 }
