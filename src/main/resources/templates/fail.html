@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <link
+            rel="icon"
+            href="https://static.toss.im/icons/png/4x/icon-toss-logo.png"
+    />
+    <link rel="stylesheet" type="text/css" href="/style.css"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>토스페이먼츠 샘플 프로젝트</title>
+</head>
+
+<body>
+<div class="result wrapper">
+    <div class="box_section">
+        <h2 style="padding: 20px 0px 10px 0px">
+            <img
+                    width="25px"
+                    src="https://static.toss.im/3d-emojis/u1F6A8-apng.png"
+            />
+            결제 실패
+        </h2>
+        <p id="code"></p>
+        <p id="message"></p>
+        <button id="confirmButton" onclick="confirmFail()">확인</button>
+        <div id="result"></div>
+    </div>
+</div>
+</body>
+</html>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+
+
+    // 결제 실패 처리 함수
+    async function confirmFail() {
+        const requestData = {
+            orderId: urlParams.get("orderId"),
+            errorCode: urlParams.get("code"),
+            message: urlParams.get("message")
+        };
+
+        try {
+            const response = await fetch("/api/payment/failsave", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            const result = await response.text();
+
+            if (response.ok) {
+                document.getElementById("result").innerHTML = "<p style='color: green;'>" + result + "</p>";
+                document.getElementById("confirmButton").disabled = true;
+            } else {
+                document.getElementById("result").innerHTML = "<p style='color: red;'>실패 처리 오류</p>";
+            }
+        } catch (error) {
+            document.getElementById("result").innerHTML = "<p style='color: red;'>오류가 발생했습니다.</p>";
+        }
+    }
+</script>

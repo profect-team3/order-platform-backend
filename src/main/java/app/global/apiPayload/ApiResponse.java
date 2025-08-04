@@ -1,25 +1,27 @@
 package app.global.apiPayload;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import app.global.apiPayload.code.status.SuccessStatus;
+
+import app.global.apiPayload.code.BaseCode;
 
 @JsonPropertyOrder({"isSuccess", "code", "message", "result"})
 public record ApiResponse<T>(
 
-		String resultCode,
-		String message,
+	@JsonProperty("isSuccess")
+	Boolean isSuccess, String code, String message,
 
-		@JsonInclude(JsonInclude.Include.NON_NULL)
-		T result
+	@JsonInclude(JsonInclude.Include.NON_NULL) T result
 ) {
-	// 성공 응답
-	public static <T> ApiResponse<T> onSuccess(T result) {
-		return new ApiResponse<>( SuccessStatus._OK.getCode(), "success", result);
+
+	public static <T> ApiResponse<T> onSuccess(BaseCode code, T result) {
+		return new ApiResponse<>(true, code.getReasonHttpStatus().getCode(), code.getReasonHttpStatus().getMessage(),
+			result);
 	}
 
-	// 실패 응답
-	public static <T> ApiResponse<T> onFailure(String code, String message, T data) {
-		return new ApiResponse<>( code, message, data);
+	public static <T> ApiResponse<T> onFailure(BaseCode code, T errorData) {
+		return new ApiResponse<>(false, code.getReasonHttpStatus().getCode(), code.getReasonHttpStatus().getMessage(),
+			errorData);
 	}
 }

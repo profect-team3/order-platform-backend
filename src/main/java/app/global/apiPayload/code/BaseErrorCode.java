@@ -1,7 +1,7 @@
 package app.global.apiPayload.code;
 
 public interface BaseErrorCode {
-	ErrorReasonDTO getReason();
+	ReasonDTO getReason();
 
-	ErrorReasonDTO getReasonHttpStatus();
+	ReasonDTO getReasonHttpStatus();
 }

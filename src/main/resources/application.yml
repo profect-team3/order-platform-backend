@@ -1,10 +1,12 @@
 spring:
   application:
     name: order-platform-backend
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://localhost:5432/order_platform
-    username: bonun
-    password: password
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -16,3 +18,23 @@ spring:
         format_sql: true
         show_sql: true
         use_sql_comments: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      database: 0
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-validity-in-milliseconds: 3600000 # 1 hour
+  refresh-token-validity-in-milliseconds: 1209600000 # 14 days
+
+server:
+  port: 8081
+  servlet:
+    context-path: /api
