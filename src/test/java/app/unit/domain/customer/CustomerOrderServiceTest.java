@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +28,7 @@ import app.domain.order.model.repository.OrdersRepository;
 import app.domain.store.model.entity.Store;
 import app.domain.user.model.UserRepository;
 import app.domain.user.model.entity.User;
+import app.global.SecurityUtil;
 import app.global.apiPayload.exception.GeneralException;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,6 +40,9 @@ class CustomerOrderServiceTest {
 
 	@Mock
 	private UserRepository userRepository;
+
+	@Mock
+	private SecurityUtil securityUtil;
 
 	@InjectMocks
 	private CustomerOrderService customerOrderService;
@@ -78,7 +81,7 @@ class CustomerOrderServiceTest {
 	@Test
 	@DisplayName("고객 주문 내역 조회 성공")
 	void getCustomerOrders_Success() {
-		when(userRepository.findById(testUser.getUserId())).thenReturn(Optional.of(testUser));
+		when(securityUtil.getCurrentUser()).thenReturn(testUser);
 		when(ordersRepository.findByUser(testUser)).thenReturn(Arrays.asList(testOrder));
 
 		List<CustomerOrderResponse> result = customerOrderService.getCustomerOrders();
@@ -87,22 +90,20 @@ class CustomerOrderServiceTest {
 		assertThat(result.get(0).getStoreName()).isEqualTo("Test Store");
 		assertThat(result.get(0).getTotalPrice()).isEqualTo(15000L);
 
-		verify(userRepository, times(1)).findById(testUser.getUserId());
 		verify(ordersRepository, times(1)).findByUser(testUser);
 	}
 
 	@Test
 	@DisplayName("고객 주문 내역 조회 실패 - 주문이 없는 경우")
 	void getCustomerOrders_NoOrdersFound() {
-		when(userRepository.findById(testUser.getUserId())).thenReturn(Optional.of(testUser));
+		when(securityUtil.getCurrentUser()).thenReturn(testUser);
 		when(ordersRepository.findByUser(testUser)).thenReturn(Collections.emptyList());
 
 		assertThatThrownBy(() -> customerOrderService.getCustomerOrders())
 			.isInstanceOf(GeneralException.class)
-			.extracting(ex -> ((GeneralException)ex).getErrorReason())
+			.extracting(ex -> ((GeneralException)ex).getCode())
 			.isEqualTo(CustomerErrorStatus.CUSTOMER_ORDER_NOT_FOUND);
 
-		verify(userRepository, times(1)).findById(testUser.getUserId());
 		verify(ordersRepository, times(1)).findByUser(testUser);
 	}
 }

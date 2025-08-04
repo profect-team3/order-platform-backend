@@ -26,8 +26,8 @@ import app.domain.review.model.dto.response.GetReviewResponse;
 import app.domain.review.model.entity.Review;
 import app.domain.review.status.ReviewErrorStatus;
 import app.domain.store.model.entity.Store;
-import app.domain.user.model.UserRepository;
 import app.domain.user.model.entity.User;
+import app.global.SecurityUtil;
 import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
 
@@ -39,10 +39,10 @@ class ReviewServiceTest {
 	private ReviewRepository reviewRepository;
 
 	@Mock
-	private UserRepository userRepository;
+	private OrdersRepository ordersRepository;
 
 	@Mock
-	private OrdersRepository ordersRepository;
+	private SecurityUtil securityUtil;
 
 	@InjectMocks
 	private ReviewService reviewService;
@@ -73,7 +73,7 @@ class ReviewServiceTest {
 	@DisplayName("리뷰 생성 - 성공")
 	void createReview_Success() {
 		CreateReviewRequest request = new CreateReviewRequest(order.getOrdersId(), 5L, "Great!");
-		when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+		when(securityUtil.getCurrentUser()).thenReturn(user);
 		when(ordersRepository.findById(order.getOrdersId())).thenReturn(Optional.of(order));
 		when(reviewRepository.existsByOrders(order)).thenReturn(false);
 		when(reviewRepository.save(any(Review.class))).thenReturn(review);
@@ -91,7 +91,7 @@ class ReviewServiceTest {
 	void createReview_Fail_OrderNotFound() {
 		UUID nonExistentOrderId = UUID.randomUUID();
 		CreateReviewRequest request = new CreateReviewRequest(nonExistentOrderId, 5L, "Great!");
-		when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+		when(securityUtil.getCurrentUser()).thenReturn(user);
 		when(ordersRepository.findById(nonExistentOrderId)).thenReturn(Optional.empty());
 
 		GeneralException exception = assertThrows(GeneralException.class,
@@ -103,22 +103,20 @@ class ReviewServiceTest {
 	@DisplayName("리뷰 생성 - 실패 (주문한 사용자가 아님)")
 	void createReview_Fail_Forbidden() {
 		CreateReviewRequest request = new CreateReviewRequest(order.getOrdersId(), 5L, "Great!");
-		when(userRepository.findById(otherUser.getUserId())).thenReturn(Optional.of(otherUser));
+		when(securityUtil.getCurrentUser()).thenReturn(otherUser);
 		when(ordersRepository.findById(request.getOrdersId())).thenReturn(Optional.of(order));
 
 		GeneralException exception = assertThrows(GeneralException.class,
 			() -> reviewService.createReview(request));
 
 		assertEquals(ErrorStatus._FORBIDDEN, exception.getCode());
-
 	}
 
 	@Test
 	@DisplayName("리뷰 생성 - 실패 (해당 주문에 이미 리뷰가 존재)")
 	void createReview_Fail_ReviewAlreadyExists() {
 		CreateReviewRequest request = new CreateReviewRequest(order.getOrdersId(), 5L, "Great!");
-
-		when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+		when(securityUtil.getCurrentUser()).thenReturn(user);
 		when(ordersRepository.findById(order.getOrdersId())).thenReturn(Optional.of(order));
 		when(reviewRepository.existsByOrders(order)).thenReturn(true);
 
@@ -126,13 +124,12 @@ class ReviewServiceTest {
 			() -> reviewService.createReview(request));
 
 		assertEquals(ReviewErrorStatus.REVIEW_ALREADY_EXISTS, exception.getCode());
-
 	}
 
 	@Test
 	@DisplayName("사용자 리뷰 조회 - 성공")
 	void getReviews_Success() {
-		when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+		when(securityUtil.getCurrentUser()).thenReturn(user);
 		when(reviewRepository.findByUser(user)).thenReturn(Collections.singletonList(review));
 
 		List<GetReviewResponse> responses = reviewService.getReviews();
@@ -151,12 +148,11 @@ class ReviewServiceTest {
 	@Test
 	@DisplayName("사용자 리뷰 조회 - 실패 (리뷰 없음)")
 	void getReviews_Fail_NoReviewsFound() {
-		when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+		when(securityUtil.getCurrentUser()).thenReturn(user);
 		when(reviewRepository.findByUser(user)).thenReturn(Collections.emptyList());
 
 		GeneralException exception = assertThrows(GeneralException.class,
 			() -> reviewService.getReviews());
 		assertEquals(ReviewErrorStatus.NO_REVIEWS_FOUND_FOR_USER, exception.getCode());
-
 	}
 }
