@@ -2,8 +2,6 @@ package app.domain.customer;
 
 import java.util.List;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +24,6 @@ public class CustomerOrderController {
 	@Operation(summary = "고객 주문 내역 조회 API", description = "자신의 모든 주문 내역을 조회합니다.")
 	@GetMapping
 	public ApiResponse<List<CustomerOrderResponse>> getCustomerOrders(
-		@AuthenticationPrincipal UserDetails principal
 	) {
 		return ApiResponse.onSuccess(CustomerSuccessStatus.CUSTOMER_OK, customerOrderService.getCustomerOrders());
 	}
