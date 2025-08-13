@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: tjsgur/postgres-ddl:1.1
+    image: postgres:latest
     container_name: sample-postgres
     ports:
       - 5432:5432
